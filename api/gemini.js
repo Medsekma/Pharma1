@@ -1,6 +1,5 @@
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    // Only allow POST requests
     return res.status(405).json({ error: 'Method Not Allowed. Use POST.' });
   }
 
@@ -16,7 +15,7 @@ export default async function handler(req, res) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.GEMINI_API_KEY}`, // Make sure you add this env var in Vercel!
+          Authorization: `Bearer ${process.env.GEMINI_API_KEY}`,
         },
         body: JSON.stringify({
           model: "gemini-1.5-turbo",
