@@ -1,21 +1,12 @@
 export default async function handler(req, res) {
-  const { GEMINI_API_KEY } = process.env;
-
-  if (!GEMINI_API_KEY) {
-    res.status(500).json({ error: "Missing Gemini API key in environment" });
-    return;
+  if (req.method !== 'POST') {
+    // Only allow POST requests
+    return res.status(405).json({ error: 'Method Not Allowed. Use POST.' });
   }
 
-  if (req.method !== "POST") {
-    res.status(405).json({ error: "Method not allowed, use POST" });
-    return;
-  }
-
-  const prompt = req.body.prompt;
-
-  if (!prompt || prompt.trim() === "") {
-    res.status(400).json({ error: "No prompt provided" });
-    return;
+  const { prompt } = req.body;
+  if (!prompt) {
+    return res.status(400).json({ error: 'Missing prompt in request body' });
   }
 
   try {
@@ -25,7 +16,7 @@ export default async function handler(req, res) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${GEMINI_API_KEY}`,
+          Authorization: `Bearer ${process.env.GEMINI_API_KEY}`, // Make sure you add this env var in Vercel!
         },
         body: JSON.stringify({
           model: "gemini-1.5-turbo",
@@ -37,14 +28,13 @@ export default async function handler(req, res) {
     );
 
     if (!response.ok) {
-      const errorText = await response.text();
-      res.status(500).json({ error: `Gemini API error: ${errorText}` });
-      return;
+      const error = await response.text();
+      return res.status(500).json({ error });
     }
 
     const data = await response.json();
-    res.status(200).json(data);
+    return res.status(200).json(data);
   } catch (error) {
-    res.status(500).json({ error: "Internal server error: " + error.message });
+    return res.status(500).json({ error: error.message });
   }
 }
