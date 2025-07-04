@@ -1,12 +1,21 @@
-// /api/gemini.js
 export default async function handler(req, res) {
+  const { GEMINI_API_KEY } = process.env;
+
+  if (!GEMINI_API_KEY) {
+    res.status(500).json({ error: "Missing Gemini API key in environment" });
+    return;
+  }
+
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed, POST only" });
+    res.status(405).json({ error: "Method not allowed, use POST" });
+    return;
   }
 
   const prompt = req.body.prompt;
-  if (!prompt) {
-    return res.status(400).json({ error: "Missing prompt in request body" });
+
+  if (!prompt || prompt.trim() === "") {
+    res.status(400).json({ error: "No prompt provided" });
+    return;
   }
 
   try {
@@ -16,7 +25,7 @@ export default async function handler(req, res) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.GEMINI_API_KEY}`,
+          Authorization: `Bearer ${GEMINI_API_KEY}`,
         },
         body: JSON.stringify({
           model: "gemini-1.5-turbo",
@@ -29,14 +38,13 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Gemini API error:", errorText);
-      return res.status(500).json({ error: errorText });
+      res.status(500).json({ error: `Gemini API error: ${errorText}` });
+      return;
     }
 
     const data = await response.json();
-    return res.status(200).json(data);
-  } catch (err) {
-    console.error("Fetch error:", err);
-    return res.status(500).json({ error: "Internal server error" });
+    res.status(200).json(data);
+  } catch (error) {
+    res.status(500).json({ error: "Internal server error: " + error.message });
   }
 }
