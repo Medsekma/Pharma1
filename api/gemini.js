@@ -16,7 +16,7 @@ export default async function handler(req, res) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer AIzaSyDoTQKMJOL6UgNKMDfBpk3CFQC2Frd70dQ`,
+          Authorization: `Bearer ${process.env.GEMINI_API_KEY}`,
         },
         body: JSON.stringify({
           model: "gemini-1.5-turbo",
